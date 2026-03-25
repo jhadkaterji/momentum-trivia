@@ -9,7 +9,8 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'momentum2024';
 const ADMIN_TOKEN    = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest('hex');
 
 // ── Database setup ─────────────────────────────────────────────────────────
-const db = new DatabaseSync(path.join(__dirname, 'trivia.db'));
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'trivia.db');
+const db = new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode = WAL');
 
 db.exec(`
