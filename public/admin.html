@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Momentum Trivia</title>
+  <style>
+    :root {
+      --navy:   #001F5B;
+      --blue:   #0047AB;
+      --orange: #FF6B00;
+      --orange-dk: #E05C00;
+      --white:  #FFFFFF;
+      --light:  #F4F6FF;
+      --gray:   #6B7A9E;
+      --border: #DDE2F0;
+      --success:#16A34A;
+      --danger: #DC2626;
+      --warn:   #D97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--light);
+      color: #1A1A2E;
+    }
+
+    /* ── Login overlay ────────────────────────────────────── */
+    #login-overlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, var(--navy) 0%, #002880 100%);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+
+    .login-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      text-align: center;
+    }
+
+    .login-box h2 { color: var(--navy); font-size: 22px; margin-bottom: 6px; }
+    .login-box p  { color: var(--gray); font-size: 14px; margin-bottom: 24px; }
+
+    /* ── Sidebar layout ───────────────────────────────────── */
+    .layout { display: flex; height: 100vh; overflow: hidden; }
+
+    aside {
+      width: 230px;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .aside-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .aside-header .nf-badge {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--orange);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .aside-header h1 { font-size: 18px; font-weight: 800; line-height: 1.2; }
+    .aside-header .role { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+    nav { flex: 1; padding: 16px 0; }
+
+    nav button {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 12px 20px;
+      background: none; border: none; color: rgba(255,255,255,0.7);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      text-align: left; transition: background 0.15s, color 0.15s;
+    }
+
+    nav button:hover  { background: rgba(255,255,255,0.08); color: #fff; }
+    nav button.active { background: rgba(255,107,0,0.2); color: var(--orange); }
+
+    nav .icon { font-size: 18px; width: 22px; text-align: center; }
+
+    .aside-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .aside-footer .indicator {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: rgba(255,255,255,0.5);
+    }
+
+    .pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22C55E;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    /* ── Main content ─────────────────────────────────────── */
+    .content { flex: 1; overflow-y: auto; padding: 28px; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-title {
+      font-size: 24px; font-weight: 800;
+      color: var(--navy); margin-bottom: 6px;
+    }
+
+    .page-sub { font-size: 14px; color: var(--gray); margin-bottom: 24px; }
+
+    /* ── Cards ────────────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+    }
+
+    .card h3 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .card .card-sub { font-size: 13px; color: var(--gray); margin-bottom: 16px; }
+
+    /* ── Inputs ───────────────────────────────────────────── */
+    label {
+      display: block; font-size: 12px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--navy); margin-bottom: 6px;
+    }
+
+    input, textarea, select {
+      width: 100%; padding: 10px 14px;
+      border: 2px solid var(--border); border-radius: 8px;
+      font-size: 14px; color: #1A1A2E; background: var(--light);
+      outline: none; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus { border-color: var(--orange); background: #fff; }
+
+    textarea { resize: vertical; min-height: 120px; font-family: 'Courier New', monospace; font-size: 13px; }
+
+    .field { margin-bottom: 14px; }
+
+    /* ── Buttons ──────────────────────────────────────────── */
+    .btn {
+      padding: 10px 20px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary  { background: var(--orange); color: #fff; }
+    .btn-danger   { background: var(--danger);  color: #fff; }
+    .btn-success  { background: var(--success); color: #fff; }
+    .btn-ghost    { background: var(--light);   color: var(--navy); border: 2px solid var(--border); }
+
+    .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    /* ── Table ────────────────────────────────────────────── */
+    .tbl-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      background: var(--light); color: var(--gray);
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 10px 14px;
+      text-align: left; border-bottom: 2px solid var(--border);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #FAFBFF; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 20px; font-size: 11px; font-weight: 700;
+    }
+
+    .badge-orange  { background: #FFF0E0; color: var(--orange); }
+    .badge-green   { background: #F0FDF4; color: var(--success); }
+    .badge-red     { background: #FEF2F2; color: var(--danger);  }
+    .badge-blue    { background: #EFF6FF; color: #1D4ED8; }
+    .badge-gray    { background: var(--light); color: var(--gray); }
+
+    /* ── Stats bars ───────────────────────────────────────── */
+    .stat-bar-wrap { margin-bottom: 16px; }
+    .stat-bar-label {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--gray); margin-bottom: 4px;
+    }
+
+    .stat-bar-track {
+      height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+    }
+
+    .stat-bar-fill {
+      height: 100%; border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Leaderboard podium ───────────────────────────────── */
+    .podium { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+
+    .podium-card {
+      flex: 1; min-width: 140px;
+      border-radius: 14px; padding: 20px;
+      text-align: center; color: #fff;
+    }
+
+    .podium-card.p1 { background: linear-gradient(135deg, #FFD700, #FFA500); }
+    .podium-card.p2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); }
+    .podium-card.p3 { background: linear-gradient(135deg, #CD7F32, #A06028); }
+    .podium-card .rank { font-size: 28px; }
+    .podium-card .team { font-size: 14px; font-weight: 700; margin: 6px 0 2px; }
+    .podium-card .pts  { font-size: 22px; font-weight: 900; }
+    .podium-card .tbl  { font-size: 11px; opacity: 0.8; }
+
+    /* ── Toast ────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1A1A2E; color: #fff;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      transform: translateY(80px); transition: transform 0.3s;
+      z-index: 999;
+    }
+
+    #toast.show { transform: translateY(0); }
+    #toast.ok   { border-left: 4px solid var(--success); }
+    #toast.err  { border-left: 4px solid var(--danger);  }
+
+    /* ── Refresh label ────────────────────────────────────── */
+    .refresh-label {
+      font-size: 12px; color: var(--gray);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-tile {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .stat-tile .val { font-size: 28px; font-weight: 900; color: var(--navy); }
+    .stat-tile .lbl { font-size: 12px; color: var(--gray); font-weight: 600; }
+
+    .correct-pct { color: var(--success); }
+  </style>
+</head>
+<body>
+
+<!-- ── Login ────────────────────────────────────────────────── -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div style="font-size:40px;margin-bottom:12px">🏆</div>
+    <h2>Admin Login</h2>
+    <p>Momentum Trivia &bull; NeuraFlash</p>
+    <div class="field">
+      <label for="pw-inp">Password</label>
+      <input id="pw-inp" type="password" placeholder="Enter admin password" />
+    </div>
+    <div id="login-err" style="color:#DC2626;font-size:13px;margin-bottom:12px;display:none">Incorrect password.</div>
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ── App ──────────────────────────────────────────────────── -->
+<div class="layout" id="app" style="display:none">
+
+  <aside>
+    <div class="aside-header">
+      <div class="nf-badge">NeuraFlash</div>
+      <h1>Momentum<br>Trivia</h1>
+      <div class="role">Admin Panel</div>
+    </div>
+    <nav>
+      <button class="active" onclick="switchPage('questions')" id="nav-questions">
+        <span class="icon">📋</span> Questions
+      </button>
+      <button onclick="switchPage('stats')" id="nav-stats">
+        <span class="icon">📊</span> Live Stats
+      </button>
+      <button onclick="switchPage('leaderboard')" id="nav-leaderboard">
+        <span class="icon">🏆</span> Leaderboard
+      </button>
+      <button onclick="switchPage('submissions')" id="nav-submissions">
+        <span class="icon">📥</span> Submissions
+      </button>
+      <button onclick="switchPage('tables')" id="nav-tables">
+        <span class="icon">🪑</span> Tables
+      </button>
+    </nav>
+    <div class="aside-footer">
+      <div class="indicator">
+        <div class="pulse"></div>
+        <span id="last-refresh">Refreshing…</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content">
+
+    <!-- ── PAGE: Questions ────────────────────────────────── -->
+    <div id="page-questions" class="page active">
+      <div class="page-title">Questions</div>
+      <div class="page-sub">Upload, manage, and control questions for the game.</div>
+
+      <!-- Upload CSV -->
+      <div class="card">
+        <h3>Upload Questions via CSV</h3>
+        <div class="card-sub">
+          Paste CSV rows below. Format: <code>number,question,option_a,option_b,option_c,option_d,correct(A-D),points</code>
+        </div>
+        <div class="field">
+          <textarea id="csv-input" placeholder='1,"What does AI stand for?","Automated Input","Artificial Intelligence","Applied Interface","Automated Intelligence",B,1
+2,"What year was NeuraFlash founded?",2014,2015,2016,2017,C,1'></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="uploadCSV(false)">Add / Update Questions</button>
+          <button class="btn btn-danger"  onclick="if(confirm('Replace ALL questions and clear ALL submissions?')) uploadCSV(true)">Replace All</button>
+        </div>
+      </div>
+
+      <!-- Add single question -->
+      <div class="card">
+        <h3>Add a Single Question</h3>
+        <div class="card-sub">Manually enter one question at a time.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="field">
+            <label>Question #</label>
+            <input id="sq-num" type="number" min="1" placeholder="e.g. 7" />
+          </div>
+          <div class="field">
+            <label>Points</label>
+            <input id="sq-pts" type="number" min="1" value="1" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Question Text</label>
+          <input id="sq-text" type="text" placeholder="What is the capital of France?" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="field"><label>Option A</label><input id="sq-a" type="text" /></div>
+          <div class="field"><label>Option B</label><input id="sq-b" type="text" /></div>
+          <div class="field"><label>Option C</label><input id="sq-c" type="text" /></div>
+          <div class="field"><label>Option D</label><input id="sq-d" type="text" /></div>
+        </div>
+        <div class="field">
+          <label>Correct Answer</label>
+          <select id="sq-correct">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="addSingleQuestion()">Add Question</button>
+      </div>
+
+      <!-- Questions list -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <h3 style="margin-bottom:0">All Questions</h3>
+            <div class="card-sub" style="margin-bottom:0" id="q-count">Loading…</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" style="border-color:#D97706;color:#D97706" onclick="openConfirmModal('scores')">Clear Scores</button>
+            <button class="btn btn-danger btn-sm" onclick="openConfirmModal('all')">Reset Everything</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table id="questions-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Answer</th>
+                <th>Pts</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="questions-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Live Stats ────────────────────────────────── -->
+    <div id="page-stats" class="page">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+        <div>
+          <div class="page-title">Live Stats</div>
+          <div class="page-sub">Answer distribution per question. Auto-refreshes every 5s.</div>
+        </div>
+        <div class="stat-grid" style="margin-bottom:0;gap:10px">
+          <div class="stat-tile">
+            <div class="val" id="stat-total-subs">—</div>
+            <div class="lbl">Total Answers</div>
+          </div>
+          <div class="stat-tile">
+            <div class="val" id="stat-tables">—</div>
+            <div class="lbl">Tables Active</div>
+          </div>
+        </div>
+      </div>
+      <div id="stats-container"></div>
+    </div>
+
+    <!-- ── PAGE: Leaderboard ───────────────────────────────── -->
+    <div id="page-leaderboard" class="page">
+      <div class="page-title">Leaderboard</div>
+      <div class="page-sub">Full scores including unrevealed questions. Auto-refreshes every 5s.</div>
+      <div class="podium" id="podium"></div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>Rank</th><th>Table</th><th>Team Name</th><th>Score</th><th>Answered</th></tr>
+            </thead>
+            <tbody id="lb-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Submissions ───────────────────────────────── -->
+    <div id="page-submissions" class="page">
+      <div class="page-title">Recent Submissions</div>
+      <div class="page-sub">Last 200 answers received. Auto-refreshes every 5s.</div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>Time</th><th>Table</th><th>Team</th><th>Q#</th><th>Answer</th><th>Correct?</th></tr>
+            </thead>
+            <tbody id="sub-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Tables ────────────────────────────────── -->
+    <div id="page-tables" class="page">
+      <div class="page-title">Registered Tables</div>
+      <div class="page-sub">All tables that have joined the game. Deleting a table removes its registration and all its submitted answers.</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div id="tables-count" style="font-size:13px;color:var(--gray)">Loading…</div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Team Name</th><th>Registered</th><th>Answers</th><th>Action</th></tr>
+            </thead>
+            <tbody id="tables-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ── Confirm / password modal ─────────────────────────────── -->
+<div id="confirm-overlay" style="
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,20,0.65); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center;">
+  <div style="
+    background:#fff; border-radius:20px; padding:36px 32px;
+    width:380px; max-width:90vw; box-shadow:0 24px 60px rgba(0,0,0,0.4);">
+    <div id="modal-icon" style="font-size:40px;text-align:center;margin-bottom:12px">⚠️</div>
+    <h2 id="modal-title" style="text-align:center;color:#1A1A2E;font-size:19px;margin-bottom:6px"></h2>
+    <p  id="modal-desc"  style="text-align:center;color:#6B7A9E;font-size:14px;margin-bottom:22px;line-height:1.5"></p>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#001F5B;display:block;margin-bottom:6px">
+        Re-enter Admin Password to confirm
+      </label>
+      <input id="modal-pw" type="password" placeholder="Admin password"
+        style="width:100%;padding:11px 14px;border:2px solid #DDE2F0;border-radius:8px;
+               font-size:15px;outline:none;font-family:inherit;"
+        onkeydown="if(event.key==='Enter') confirmAction()" />
+      <div id="modal-pw-err" style="color:#DC2626;font-size:13px;font-weight:600;margin-top:6px;display:none"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeConfirmModal()"
+        style="flex:1;padding:12px;border:2px solid #DDE2F0;border-radius:8px;background:#F4F6FF;
+               font-size:14px;font-weight:700;cursor:pointer;color:#1A1A2E">
+        Cancel
+      </button>
+      <button id="modal-confirm-btn" onclick="confirmAction()"
+        style="flex:1;padding:12px;border:none;border-radius:8px;
+               font-size:14px;font-weight:700;cursor:pointer;color:#fff">
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let adminToken = '';
+  let refreshTimer = null;
+  let currentPage = 'questions';
+
+  // ── Login ────────────────────────────────────────────────────────────────
+  document.getElementById('pw-inp').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function doLogin() {
+    const pw = document.getElementById('pw-inp').value;
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    if (!res.ok) {
+      document.getElementById('login-err').style.display = 'block';
+      return;
+    }
+    const { token } = await res.json();
+    adminToken = token;
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    startRefresh();
+    loadQuestions();
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function switchPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    currentPage = name;
+    refreshCurrentPage();
+  }
+
+  // ── Auto refresh ──────────────────────────────────────────────────────────
+  function startRefresh() {
+    clearInterval(refreshTimer);
+    refreshTimer = setInterval(refreshCurrentPage, 5000);
+  }
+
+  function refreshCurrentPage() {
+    document.getElementById('last-refresh').textContent =
+      'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    if (currentPage === 'questions')    loadQuestions();
+    if (currentPage === 'stats')        loadStats();
+    if (currentPage === 'leaderboard')  loadLeaderboard();
+    if (currentPage === 'submissions')  loadSubmissions();
+    if (currentPage === 'tables')       loadTables();
+  }
+
+  // ── API helpers ───────────────────────────────────────────────────────────
+  async function api(method, path, body) {
+    const opts = {
+      method,
+      headers: { 'x-admin-token': adminToken, 'Content-Type': 'application/json' }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(path, opts);
+    return { ok: res.ok, data: await res.json() };
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  let toastTimer;
+  function toast(msg, type='ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', 3000);
+  }
+
+  // ── Questions page ────────────────────────────────────────────────────────
+  async function loadQuestions() {
+    const { ok, data } = await api('GET', '/api/admin/questions');
+    if (!ok) return;
+
+    document.getElementById('q-count').textContent = data.length + ' question(s) loaded';
+
+    const tbody = document.getElementById('questions-tbody');
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:30px">No questions yet. Upload some above.</td></tr>';
+      return;
+    }
+
+    data.forEach(q => {
+      const tr = document.createElement('tr');
+      const statusBadge = q.locked
+        ? '<span class="badge badge-red">Locked</span>'
+        : (q.revealed ? '<span class="badge badge-green">Revealed</span>' : '<span class="badge badge-gray">Active</span>');
+
+      tr.innerHTML = `
+        <td><strong>${q.question_number}</strong></td>
+        <td style="max-width:280px">${esc(q.question_text)}<br>
+          <small style="color:#999">A: ${esc(q.option_a)} &bull; B: ${esc(q.option_b)} &bull; C: ${esc(q.option_c)} &bull; D: ${esc(q.option_d)}</small>
+        </td>
+        <td><span class="badge badge-orange">${q.correct_answer}</span></td>
+        <td>${q.points}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm ${q.locked ? 'btn-ghost' : 'btn-danger'}"
+              onclick="toggleLock(${q.question_number}, ${q.locked ? 0 : 1})">
+              ${q.locked ? 'Unlock' : 'Lock'}
+            </button>
+            <button class="btn btn-sm ${q.revealed ? 'btn-ghost' : 'btn-success'}"
+              onclick="toggleReveal(${q.question_number}, ${q.revealed ? 0 : 1})">
+              ${q.revealed ? 'Hide Ans' : 'Reveal Ans'}
+            </button>
+            <button class="btn btn-sm btn-danger"
+              onclick="if(confirm('Delete Q${q.question_number}?')) deleteQuestion(${q.question_number})">
+              Del
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function toggleLock(num, val) {
+    const { ok } = await api('PUT', `/api/admin/questions/${num}/lock`, { locked: !!val });
+    if (ok) { toast(val ? `Q${num} locked` : `Q${num} unlocked`); loadQuestions(); }
+  }
+
+  async function toggleReveal(num, val) {
+    const { ok } = await api('PUT', `/api/admin/questions/${num}/reveal`, { revealed: !!val });
+    if (ok) { toast(val ? `Q${num} answer revealed` : `Q${num} answer hidden`); loadQuestions(); }
+  }
+
+  async function deleteQuestion(num) {
+    const { ok } = await api('DELETE', `/api/admin/questions/${num}`);
+    if (ok) { toast(`Q${num} deleted`, 'ok'); loadQuestions(); }
+  }
+
+  // ── Confirm modal ─────────────────────────────────────────────────────────
+  let pendingAction = null;
+
+  function openConfirmModal(action) {
+    pendingAction = action;
+    const overlay = document.getElementById('confirm-overlay');
+    const title   = document.getElementById('modal-title');
+    const desc    = document.getElementById('modal-desc');
+    const btn     = document.getElementById('modal-confirm-btn');
+    const pwErr   = document.getElementById('modal-pw-err');
+
+    document.getElementById('modal-pw').value = '';
+    pwErr.style.display = 'none';
+
+    if (action === 'scores') {
+      document.getElementById('modal-icon').textContent = '🗑️';
+      title.textContent = 'Clear All Scores?';
+      desc.textContent  = 'This will delete every submitted answer. Questions stay intact. This cannot be undone.';
+      btn.style.background = '#D97706';
+    } else {
+      document.getElementById('modal-icon').textContent = '💥';
+      title.textContent = 'Reset Everything?';
+      desc.textContent  = 'This will permanently delete ALL questions and ALL submitted answers. The game will be completely wiped. This cannot be undone.';
+      btn.style.background = '#DC2626';
+    }
+
+    overlay.style.display = 'flex';
+    setTimeout(() => document.getElementById('modal-pw').focus(), 50);
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirm-overlay').style.display = 'none';
+    pendingAction = null;
+  }
+
+  async function confirmAction() {
+    const pw    = document.getElementById('modal-pw').value;
+    const pwErr = document.getElementById('modal-pw-err');
+    if (!pw) {
+      pwErr.textContent = 'Please enter the admin password.';
+      pwErr.style.display = 'block';
+      return;
+    }
+
+    const endpoint = pendingAction === 'scores' ? '/api/admin/clear-scores' : '/api/admin/reset';
+    const { ok, data } = await api('DELETE', endpoint, { password: pw });
+
+    if (!ok) {
+      pwErr.textContent = data.error || 'Incorrect password.';
+      pwErr.style.display = 'block';
+      document.getElementById('modal-pw').value = '';
+      document.getElementById('modal-pw').focus();
+      return;
+    }
+
+    closeConfirmModal();
+    if (pendingAction === 'scores') {
+      toast('All scores cleared', 'ok');
+    } else {
+      toast('Everything reset', 'ok');
+    }
+    loadQuestions();
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('confirm-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirmModal();
+  });
+
+  // ── CSV upload ────────────────────────────────────────────────────────────
+  function parseCSV(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const questions = [];
+    for (const line of lines) {
+      // Handle quoted fields
+      const fields = parseCSVLine(line);
+      if (fields.length < 7) continue;
+      questions.push({
+        question_number: Number(fields[0]),
+        question_text:   fields[1],
+        option_a:        fields[2],
+        option_b:        fields[3],
+        option_c:        fields[4],
+        option_d:        fields[5],
+        correct_answer:  fields[6].toUpperCase(),
+        points:          Number(fields[7]) || 1
+      });
+    }
+    return questions;
+  }
+
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuote && line[i+1] === '"') { current += '"'; i++; }
+        else inQuote = !inQuote;
+      } else if (ch === ',' && !inQuote) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  async function uploadCSV(replace) {
+    const text = document.getElementById('csv-input').value.trim();
+    if (!text) { toast('Paste CSV data first', 'err'); return; }
+
+    const questions = parseCSV(text);
+    if (questions.length === 0) { toast('No valid rows found', 'err'); return; }
+
+    const { ok, data } = await api('POST', '/api/admin/questions', { questions, replace });
+    if (ok) {
+      toast(`${data.count} question(s) uploaded`, 'ok');
+      document.getElementById('csv-input').value = '';
+      loadQuestions();
+    } else {
+      toast(data.error || 'Upload failed', 'err');
+    }
+  }
+
+  async function addSingleQuestion() {
+    const q = {
+      question_number: Number(document.getElementById('sq-num').value),
+      question_text:   document.getElementById('sq-text').value.trim(),
+      option_a:        document.getElementById('sq-a').value.trim(),
+      option_b:        document.getElementById('sq-b').value.trim(),
+      option_c:        document.getElementById('sq-c').value.trim(),
+      option_d:        document.getElementById('sq-d').value.trim(),
+      correct_answer:  document.getElementById('sq-correct').value,
+      points:          Number(document.getElementById('sq-pts').value) || 1,
+    };
+
+    if (!q.question_number || !q.question_text || !q.option_a || !q.option_b || !q.option_c || !q.option_d) {
+      toast('Fill in all fields', 'err'); return;
+    }
+
+    const { ok, data } = await api('POST', '/api/admin/questions', { questions: [q], replace: false });
+    if (ok) {
+      toast('Question added!', 'ok');
+      ['sq-num','sq-text','sq-a','sq-b','sq-c','sq-d'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('sq-pts').value = '1';
+      loadQuestions();
+    } else {
+      toast(data.error || 'Failed', 'err');
+    }
+  }
+
+  // ── Stats page ────────────────────────────────────────────────────────────
+  async function loadStats() {
+    const { ok, data } = await api('GET', '/api/admin/stats');
+    if (!ok) return;
+
+    let totalSubs = 0;
+    const tables = new Set();
+    const subsRes = await api('GET', '/api/admin/submissions');
+    if (subsRes.ok) {
+      subsRes.data.forEach(s => tables.add(s.table_number));
+      totalSubs = subsRes.data.length;
+    }
+
+    document.getElementById('stat-total-subs').textContent = totalSubs;
+    document.getElementById('stat-tables').textContent = tables.size;
+
+    const container = document.getElementById('stats-container');
+    container.innerHTML = '';
+
+    if (data.length === 0) {
+      container.innerHTML = '<div class="card" style="text-align:center;color:#999;padding:40px">No questions uploaded yet.</div>';
+      return;
+    }
+
+    data.forEach(q => {
+      const total = q.total_submissions || 0;
+      const counts = { A: q.count_a, B: q.count_b, C: q.count_c, D: q.count_d };
+      const colors = { A: '#6366F1', B: '#F59E0B', C: '#10B981', D: '#EF4444' };
+
+      let barsHtml = '';
+      ['A','B','C','D'].forEach(letter => {
+        const count = counts[letter] || 0;
+        const pct   = total > 0 ? Math.round((count / total) * 100) : 0;
+        const isCorrect = letter === q.correct_answer && q.revealed;
+        barsHtml += `
+          <div class="stat-bar-wrap">
+            <div class="stat-bar-label">
+              <span><strong>${letter}</strong>${isCorrect ? ' ✅' : ''}</span>
+              <span>${count} votes (${pct}%)</span>
+            </div>
+            <div class="stat-bar-track">
+              <div class="stat-bar-fill" style="width:${pct}%;background:${colors[letter]}"></div>
+            </div>
+          </div>`;
+      });
+
+      const lockBadge = q.locked
+        ? '<span class="badge badge-red" style="margin-left:8px">Locked</span>'
+        : '<span class="badge badge-green" style="margin-left:8px">Open</span>';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div>
+            <h3>Q${q.question_number}: ${esc(q.question_text)}</h3>
+            <div class="card-sub" style="margin-bottom:0">
+              ${total} submission(s) &bull; Correct: <strong>${q.correct_answer}</strong>${lockBadge}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm ${q.locked ? 'btn-ghost' : 'btn-danger'}"
+              onclick="toggleLock(${q.question_number}, ${q.locked ? 0 : 1}); setTimeout(loadStats, 500)">
+              ${q.locked ? 'Unlock' : 'Lock'}
+            </button>
+            <button class="btn btn-sm ${q.revealed ? 'btn-ghost' : 'btn-success'}"
+              onclick="toggleReveal(${q.question_number}, ${q.revealed ? 0 : 1}); setTimeout(loadStats, 500)">
+              ${q.revealed ? 'Hide Ans' : 'Reveal Ans'}
+            </button>
+          </div>
+        </div>
+        ${barsHtml}
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // ── Leaderboard page ──────────────────────────────────────────────────────
+  async function loadLeaderboard() {
+    const { ok, data } = await api('GET', '/api/admin/leaderboard');
+    if (!ok) return;
+
+    const podium = document.getElementById('podium');
+    const tbody  = document.getElementById('lb-tbody');
+    podium.innerHTML = '';
+    tbody.innerHTML  = '';
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:30px">No submissions yet.</td></tr>';
+      return;
+    }
+
+    const medals = ['p1','p2','p3'];
+    const emojis = ['🥇','🥈','🥉'];
+    data.slice(0,3).forEach((row, i) => {
+      const div = document.createElement('div');
+      div.className = 'podium-card ' + medals[i];
+      div.innerHTML = `
+        <div class="rank">${emojis[i]}</div>
+        <div class="team">${esc(row.team_name || 'Table ' + row.table_number)}</div>
+        <div class="pts">${row.score} pts</div>
+        <div class="tbl">Table ${row.table_number}</div>
+      `;
+      podium.appendChild(div);
+    });
+
+    data.forEach((row, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${i+1}</strong></td>
+        <td>Table ${row.table_number}</td>
+        <td>${esc(row.team_name || '—')}</td>
+        <td><strong style="color:var(--orange)">${row.score}</strong></td>
+        <td>${row.questions_answered}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ── Submissions page ──────────────────────────────────────────────────────
+  async function loadSubmissions() {
+    const { ok, data } = await api('GET', '/api/admin/submissions');
+    if (!ok) return;
+
+    const tbody = document.getElementById('sub-tbody');
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:30px">No submissions yet.</td></tr>';
+      return;
+    }
+
+    data.forEach(s => {
+      const tr = document.createElement('tr');
+      const time = new Date(s.submitted_at + 'Z').toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      const correctBadge = s.is_correct
+        ? '<span class="badge badge-green">✓ Correct</span>'
+        : '<span class="badge badge-red">✗ Wrong</span>';
+      tr.innerHTML = `
+        <td style="color:#888;font-size:12px">${time}</td>
+        <td>Table <strong>${s.table_number}</strong></td>
+        <td>${esc(s.team_name || '—')}</td>
+        <td>Q${s.question_number}</td>
+        <td><span class="badge badge-blue">${s.answer}</span></td>
+        <td>${correctBadge}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ── Tables page ───────────────────────────────────────────────────────────
+  async function loadTables() {
+    const { ok, data } = await api('GET', '/api/admin/tables');
+    if (!ok) return;
+
+    document.getElementById('tables-count').textContent =
+      data.length + ' table(s) registered';
+
+    const tbody = document.getElementById('tables-tbody');
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:30px">No tables registered yet.</td></tr>';
+      return;
+    }
+
+    data.forEach(row => {
+      const time = new Date(row.registered_at + 'Z').toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      const date = new Date(row.registered_at + 'Z').toLocaleDateString([], {month:'short', day:'numeric'});
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>Table ${row.table_number}</strong></td>
+        <td>${esc(row.team_name || '—')}</td>
+        <td style="color:var(--gray);font-size:13px">${date} ${time}</td>
+        <td><span class="badge badge-blue">${row.answers_submitted}</span></td>
+        <td>
+          <button class="btn btn-danger btn-sm"
+            onclick="deleteTable(${row.table_number})">
+            Delete
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function deleteTable(num) {
+    if (!confirm(`Delete Table ${num}? This removes their registration and all their submitted answers.`)) return;
+    const { ok } = await api('DELETE', `/api/admin/tables/${num}`);
+    if (ok) { toast(`Table ${num} deleted`, 'ok'); loadTables(); }
+    else    { toast('Delete failed', 'err'); }
+  }
+
+  // ── Utils ─────────────────────────────────────────────────────────────────
+  function esc(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+</script>
+
+</body>
+</html>

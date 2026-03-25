@@ -1,0 +1,12 @@
+{
+  "name": "momentum-trivia",
+  "version": "1.0.0",
+  "description": "NeuraFlash Momentum Trivia Night App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --no-warnings server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

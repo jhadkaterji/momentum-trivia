@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Momentum Trivia</title>
+  <style>
+    :root {
+      --navy:   #001F5B;
+      --blue:   #0047AB;
+      --orange: #FF6B00;
+      --orange-dark: #E05C00;
+      --white:  #FFFFFF;
+      --light:  #F0F4FF;
+      --gray:   #8899BB;
+      --success:#22C55E;
+      --danger: #EF4444;
+      --card-bg:#FFFFFF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(160deg, var(--navy) 0%, #002880 100%);
+      min-height: 100vh;
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    header {
+      width: 100%;
+      padding: 24px 20px 20px;
+      text-align: center;
+      background: rgba(0,0,0,0.25);
+      border-bottom: 3px solid var(--orange);
+    }
+
+    .logo-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .nf-dot {
+      width: 10px; height: 10px;
+      background: var(--orange);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .powered-by {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gray);
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      margin-top: 6px;
+    }
+
+    h1 span { color: var(--orange); }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Main container ──────────────────────────────── */
+    main {
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 16px 40px;
+      flex: 1;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Card ────────────────────────────────────────── */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      color: #111;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .card p.hint {
+      font-size: 13px;
+      color: #667;
+      margin-bottom: 20px;
+    }
+
+    /* ── Form inputs ─────────────────────────────────── */
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #DDE2F0;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #111;
+      background: var(--light);
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+
+    input:focus { border-color: var(--orange); background: #fff; }
+
+    .field { margin-bottom: 16px; }
+
+    /* ── Buttons ─────────────────────────────────────── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      color: #fff;
+      margin-top: 8px;
+    }
+
+    .btn-secondary {
+      background: var(--light);
+      color: var(--navy);
+      border: 2px solid #DDE2F0;
+      margin-top: 10px;
+    }
+
+    /* ── Answer option buttons ───────────────────────── */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .option-btn {
+      padding: 20px 12px;
+      border: 3px solid #DDE2F0;
+      border-radius: 14px;
+      background: var(--light);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 15px;
+      font-weight: 600;
+      color: #222;
+      text-align: left;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+
+    .option-btn:active { transform: scale(0.96); }
+
+    .option-letter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .option-btn .option-text {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    .option-btn.selected {
+      border-color: var(--orange);
+      background: #FFF3E8;
+    }
+
+    .option-btn.selected .option-letter {
+      background: var(--orange);
+    }
+
+    /* ── Question display ────────────────────────────── */
+    .question-number-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .question-text {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--navy);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    /* ── Status bar ──────────────────────────────────── */
+    .status-bar {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    .status-bar .table-label {
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    .status-bar .change-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.7);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* ── Toast / confirmation ────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1A1A2E;
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { border-left: 4px solid var(--success); }
+    #toast.error   { border-left: 4px solid var(--danger);  }
+
+    /* ── Success screen ──────────────────────────────── */
+    .success-icon {
+      font-size: 56px;
+      text-align: center;
+      margin: 8px 0 12px;
+    }
+
+    .success-msg {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .success-sub {
+      text-align: center;
+      font-size: 14px;
+      color: #667;
+      margin-top: 6px;
+    }
+
+    /* ── Q-number input row ──────────────────────────── */
+    .q-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .q-row .field { flex: 1; margin-bottom: 0; }
+    .q-row .btn   { width: auto; padding: 14px 22px; margin-top: 0; flex-shrink: 0; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #EEF0F8;
+      margin: 18px 0;
+    }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-line">
+    <span class="nf-dot"></span>
+    <span class="powered-by">NeuraFlash</span>
+    <span class="nf-dot"></span>
+  </div>
+  <h1>MOMENTUM <span>TRIVIA</span></h1>
+  <div class="subtitle">Company Event &bull; 2026</div>
+</header>
+
+<main>
+
+  <!-- ── SCREEN 1: Setup ──────────────────────────────── -->
+  <div id="screen-setup" class="screen active">
+    <div style="height:20px"></div>
+    <div class="card">
+      <h2>Welcome! 🎉</h2>
+      <p class="hint">Enter your table number to get started.</p>
+
+      <div class="field">
+        <label for="inp-table">Table Number</label>
+        <input id="inp-table" type="number" min="1" max="60" placeholder="e.g. 12"
+          oninput="onTableInput()" />
+      </div>
+
+      <!-- Shown only for new tables -->
+      <div id="team-name-field" class="field" style="display:none">
+        <label for="inp-team">Team Name</label>
+        <input id="inp-team" type="text" maxlength="40" placeholder="e.g. The NeuraFlashers" />
+      </div>
+
+      <!-- Shown for returning tables -->
+      <div id="returning-team" style="display:none;margin-bottom:16px;padding:12px 14px;
+           background:#F0F4FF;border-radius:10px;border:2px solid #DDE2F0">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+             color:#6B7A9E;margin-bottom:4px">Team</div>
+        <div id="returning-team-name" style="font-size:17px;font-weight:700;color:#001F5B"></div>
+      </div>
+
+      <div id="setup-error" class="error-msg" style="display:none"></div>
+      <button class="btn btn-primary" id="join-btn" onclick="joinGame()" style="display:none">
+        Join the Game &rarr;
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 2: Answer a Question ─────────────────── -->
+  <div id="screen-answer" class="screen">
+    <div class="status-bar">
+      <div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:2px">YOUR TABLE</div>
+        <div class="table-label" id="lbl-table-num">—</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:2px">TEAM</div>
+        <div style="font-size:14px;font-weight:600" id="lbl-team-name">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Answer a Question</h2>
+      <p class="hint">Enter the question number being shown on the screen.</p>
+
+      <div class="q-row">
+        <div class="field">
+          <label for="inp-qnum">Question #</label>
+          <input id="inp-qnum" type="number" min="1" placeholder="e.g. 5" />
+        </div>
+        <button class="btn btn-primary" onclick="loadQuestion()" style="font-size:14px">Load</button>
+      </div>
+
+      <div id="q-error" class="error-msg" style="display:none"></div>
+
+      <!-- Question display (hidden until loaded) -->
+      <div id="question-area" style="display:none">
+        <hr class="divider" />
+        <div class="question-number-badge" id="q-badge">Question 1</div>
+        <div class="question-text" id="q-text"></div>
+
+        <div class="options-grid" id="options-grid"></div>
+
+        <div id="answer-error" class="error-msg" style="display:none"></div>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3: Submitted ──────────────────────────── -->
+  <div id="screen-done" class="screen">
+    <div style="height:20px"></div>
+    <div class="card">
+      <div class="success-icon">✅</div>
+      <div class="success-msg">Answer Submitted!</div>
+      <div class="success-sub" id="done-sub">Good luck!</div>
+      <hr class="divider" />
+      <button class="btn btn-primary" onclick="answerAnother()">Answer Another Question</button>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let state = {
+    tableNumber: null,
+    teamName: null,
+    currentQuestion: null,
+    selectedAnswer: null
+  };
+
+  // Restore from localStorage
+  const saved = JSON.parse(localStorage.getItem('nf-trivia') || '{}');
+  if (saved.tableNumber) {
+    state.tableNumber = saved.tableNumber;
+    state.teamName    = saved.teamName || '';
+    showScreen('answer');
+    updateStatusBar();
+  }
+
+  // ── Screens ────────────────────────────────────────────────────────────────
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+  }
+
+  function updateStatusBar() {
+    document.getElementById('lbl-table-num').textContent = 'Table ' + state.tableNumber;
+    document.getElementById('lbl-team-name').textContent = state.teamName || '(no team name)';
+  }
+
+  // ── Setup ──────────────────────────────────────────────────────────────────
+  let lookupTimer = null;
+  let tableIsReturning = false;  // true = already registered server-side
+
+  function onTableInput() {
+    const val = document.getElementById('inp-table').value.trim();
+    const num = parseInt(val, 10);
+
+    // Hide everything until we have a valid number
+    document.getElementById('team-name-field').style.display = 'none';
+    document.getElementById('returning-team').style.display  = 'none';
+    document.getElementById('join-btn').style.display        = 'none';
+    document.getElementById('setup-error').style.display     = 'none';
+    tableIsReturning = false;
+
+    if (!val || isNaN(num) || num < 1 || num > 60) return;
+
+    // Debounce the lookup by 400ms
+    clearTimeout(lookupTimer);
+    lookupTimer = setTimeout(() => lookupTable(num), 400);
+  }
+
+  async function lookupTable(num) {
+    try {
+      const res  = await fetch('/api/table/' + num);
+      const data = await res.json();
+
+      if (data.registered) {
+        // Returning table — show locked team name, no input
+        tableIsReturning = true;
+        document.getElementById('returning-team-name').textContent = data.team_name || '(no team name)';
+        document.getElementById('returning-team').style.display  = 'block';
+        document.getElementById('team-name-field').style.display = 'none';
+      } else {
+        // New table — show team name input
+        tableIsReturning = false;
+        document.getElementById('team-name-field').style.display = 'block';
+        document.getElementById('returning-team').style.display  = 'none';
+        document.getElementById('inp-team').value = '';
+        document.getElementById('inp-team').focus();
+      }
+
+      document.getElementById('join-btn').style.display = 'block';
+    } catch (e) {
+      document.getElementById('setup-error').textContent = 'Network error. Please try again.';
+      document.getElementById('setup-error').style.display = 'block';
+    }
+  }
+
+  async function joinGame() {
+    const tableVal = document.getElementById('inp-table').value.trim();
+    const errEl    = document.getElementById('setup-error');
+    errEl.style.display = 'none';
+
+    const tableNum = parseInt(tableVal, 10);
+    if (!tableVal || isNaN(tableNum) || tableNum < 1 || tableNum > 60) {
+      errEl.textContent = 'Please enter a valid table number (1–60).';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    let teamName = '';
+    if (tableIsReturning) {
+      // Use server-stored name (already shown read-only)
+      teamName = document.getElementById('returning-team-name').textContent;
+      if (teamName === '(no team name)') teamName = '';
+    } else {
+      // New table — register with the chosen name
+      teamName = document.getElementById('inp-team').value.trim();
+      try {
+        const res  = await fetch('/api/table/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_number: tableNum, team_name: teamName })
+        });
+        const data = await res.json();
+        // Use whatever the server confirmed (guards against races)
+        teamName = data.team_name || teamName;
+      } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
+        return;
+      }
+    }
+
+    state.tableNumber = tableNum;
+    state.teamName    = teamName;
+    localStorage.setItem('nf-trivia', JSON.stringify({ tableNumber: state.tableNumber, teamName: state.teamName }));
+
+    updateStatusBar();
+    showScreen('answer');
+    document.getElementById('inp-qnum').focus();
+  }
+
+  // ── Load Question ──────────────────────────────────────────────────────────
+  async function loadQuestion() {
+    const qNum  = document.getElementById('inp-qnum').value.trim();
+    const errEl = document.getElementById('q-error');
+    errEl.style.display = 'none';
+
+    if (!qNum || isNaN(Number(qNum))) {
+      errEl.textContent = 'Please enter a question number.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/questions/${qNum}?table_number=${state.tableNumber}`);
+      if (!res.ok) {
+        const data = await res.json();
+        errEl.textContent = data.error || 'Question not found.';
+        errEl.style.display = 'block';
+        document.getElementById('question-area').style.display = 'none';
+        return;
+      }
+
+      const q = await res.json();
+      state.currentQuestion = q;
+      state.selectedAnswer  = q.existing_answer || null;
+
+      // Render
+      document.getElementById('q-badge').textContent = 'Question ' + q.question_number;
+      document.getElementById('q-text').textContent  = q.question_text;
+
+      const alreadyAnswered = !!q.existing_answer;
+      const grid = document.getElementById('options-grid');
+      grid.innerHTML = '';
+      const opts = [
+        { letter: 'A', text: q.option_a },
+        { letter: 'B', text: q.option_b },
+        { letter: 'C', text: q.option_c },
+        { letter: 'D', text: q.option_d },
+      ];
+      opts.forEach(o => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn' + (o.letter === q.existing_answer ? ' selected' : '');
+        btn.id = 'opt-' + o.letter;
+        if (alreadyAnswered) {
+          btn.disabled = true;
+          btn.style.opacity = o.letter === q.existing_answer ? '1' : '0.45';
+          btn.style.cursor = 'not-allowed';
+        } else {
+          btn.onclick = () => selectOption(o.letter);
+        }
+        btn.innerHTML = `<span class="option-letter">${o.letter}</span><span class="option-text">${escHtml(o.text)}</span>`;
+        grid.appendChild(btn);
+      });
+
+      const answerErrEl = document.getElementById('answer-error');
+      const submitBtn   = document.getElementById('submit-btn');
+      answerErrEl.style.display = 'none';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Answer';
+
+      if (alreadyAnswered) {
+        answerErrEl.textContent = `Your table already submitted "${q.existing_answer}" — answers are final.`;
+        answerErrEl.style.color = '#D97706';
+        answerErrEl.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Already Submitted';
+      } else if (q.locked) {
+        answerErrEl.textContent = 'This question is locked — no more answers accepted.';
+        answerErrEl.style.color = '';
+        answerErrEl.style.display = 'block';
+        submitBtn.disabled = true;
+      } else {
+        answerErrEl.style.color = '';
+      }
+
+      document.getElementById('question-area').style.display = 'block';
+    } catch (e) {
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.style.display = 'block';
+    }
+  }
+
+  function selectOption(letter) {
+    state.selectedAnswer = letter;
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('opt-' + letter).classList.add('selected');
+    document.getElementById('answer-error').style.display = 'none';
+  }
+
+  // ── Submit Answer ──────────────────────────────────────────────────────────
+  async function submitAnswer() {
+    const errEl = document.getElementById('answer-error');
+    if (!state.selectedAnswer) {
+      errEl.textContent = 'Please select an answer first.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          table_number:    state.tableNumber,
+          team_name:       state.teamName,
+          question_number: state.currentQuestion.question_number,
+          answer:          state.selectedAnswer
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.error || 'Submission failed.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Submit Answer';
+        return;
+      }
+
+      // Success
+      document.getElementById('done-sub').textContent =
+        `Table ${state.tableNumber} · Question ${state.currentQuestion.question_number} · Answer: ${state.selectedAnswer}`;
+      showScreen('done');
+    } catch (e) {
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit Answer';
+    }
+  }
+
+  function answerAnother() {
+    state.currentQuestion = null;
+    state.selectedAnswer  = null;
+    document.getElementById('inp-qnum').value = '';
+    document.getElementById('question-area').style.display = 'none';
+    document.getElementById('q-error').style.display = 'none';
+    showScreen('answer');
+    document.getElementById('inp-qnum').focus();
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Allow Enter key to trigger load/join
+  document.getElementById('inp-qnum').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadQuestion();
+  });
+  document.getElementById('inp-table').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const teamField = document.getElementById('team-name-field');
+      if (teamField.style.display !== 'none') {
+        document.getElementById('inp-team').focus();
+      } else {
+        joinGame();
+      }
+    }
+  });
+  document.getElementById('inp-team').addEventListener('keydown', e => {
+    if (e.key === 'Enter') joinGame();
+  });
+</script>
+
+</body>
+</html>

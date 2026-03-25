@@ -1,0 +1,4 @@
+node_modules/
+trivia.db
+trivia.db-shm
+trivia.db-wal

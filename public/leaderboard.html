@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard — Momentum Trivia</title>
+  <style>
+    :root {
+      --navy:   #001F5B;
+      --orange: #FF6B00;
+      --gold:   #FFD700;
+      --silver: #C0C0C0;
+      --bronze: #CD7F32;
+      --white:  #FFFFFF;
+      --gray:   #8899BB;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(160deg, #000C2A 0%, #001F5B 50%, #002880 100%);
+      min-height: 100vh;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      padding: 28px 48px 22px;
+      border-bottom: 3px solid var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.3);
+    }
+
+    .header-left .nf-badge {
+      font-size: 12px; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--orange);
+      font-weight: 700; margin-bottom: 4px;
+    }
+
+    .header-left h1 {
+      font-size: 38px; font-weight: 900;
+      letter-spacing: -1px; line-height: 1;
+    }
+
+    .header-left h1 span { color: var(--orange); }
+
+    .header-right {
+      text-align: right;
+    }
+
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,107,0,0.15);
+      border: 1px solid rgba(255,107,0,0.4);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px; font-weight: 700;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+
+    .pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--orange);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .last-update { font-size: 12px; color: var(--gray); }
+
+    /* ── Main ───────────────────────────────────────────── */
+    main { padding: 36px 48px; }
+
+    /* ── Top 3 podium ───────────────────────────────────── */
+    .podium {
+      display: flex; gap: 20px;
+      justify-content: center;
+      align-items: flex-end;
+      margin-bottom: 40px;
+    }
+
+    .podium-item {
+      flex: 1; max-width: 280px;
+      text-align: center;
+    }
+
+    .podium-card {
+      border-radius: 20px;
+      padding: 28px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .podium-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    }
+
+    .podium-card.rank-1 {
+      background: linear-gradient(135deg, #B8860B, #FFD700, #DAA520);
+      box-shadow: 0 0 40px rgba(255,215,0,0.4);
+      padding-top: 36px; padding-bottom: 36px;
+    }
+
+    .podium-card.rank-2 {
+      background: linear-gradient(135deg, #808080, #C0C0C0, #A8A8A8);
+      box-shadow: 0 0 20px rgba(192,192,192,0.3);
+    }
+
+    .podium-card.rank-3 {
+      background: linear-gradient(135deg, #8B4513, #CD7F32, #A05020);
+      box-shadow: 0 0 20px rgba(205,127,50,0.3);
+    }
+
+    .medal { font-size: 44px; margin-bottom: 10px; }
+    .rank-1 .medal { font-size: 56px; }
+
+    .podium-team {
+      font-size: 18px; font-weight: 800;
+      color: #fff; margin-bottom: 4px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    .rank-1 .podium-team { font-size: 22px; }
+
+    .podium-table {
+      font-size: 13px; opacity: 0.8;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 10px;
+    }
+
+    .podium-score {
+      font-size: 36px; font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .rank-1 .podium-score { font-size: 48px; }
+    .podium-pts { font-size: 14px; opacity: 0.8; }
+
+    /* ── Rest of leaderboard table ──────────────────────── */
+    .lb-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 16px;
+    }
+
+    .lb-table thead th {
+      background: rgba(255,255,255,0.07);
+      color: var(--gray); font-size: 12px;
+      font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 12px 20px; text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .lb-table tbody tr {
+      transition: background 0.2s;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .lb-table tbody tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lb-table tbody td {
+      padding: 14px 20px;
+      vertical-align: middle;
+    }
+
+    .rank-num {
+      font-size: 20px; font-weight: 900;
+      color: rgba(255,255,255,0.35);
+      width: 50px;
+    }
+
+    .team-cell { font-weight: 700; font-size: 17px; }
+    .table-cell { color: var(--gray); font-size: 14px; }
+    .score-cell { font-size: 22px; font-weight: 900; color: var(--orange); }
+    .ans-cell { color: var(--gray); font-size: 14px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 40px;
+      color: rgba(255,255,255,0.3);
+      font-size: 20px;
+    }
+
+    .empty-state .icon { font-size: 60px; margin-bottom: 16px; }
+
+    /* ── Score bar ──────────────────────────────────────── */
+    .score-bar-wrap { margin-top: 6px; }
+    .score-bar {
+      height: 4px; border-radius: 2px;
+      background: rgba(255,107,0,0.3);
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%; border-radius: 2px;
+      background: var(--orange);
+      transition: width 0.6s ease;
+    }
+
+    /* ── Footer ─────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="nf-badge">NeuraFlash &bull; Momentum 2026</div>
+    <h1>MOMENTUM <span>TRIVIA</span></h1>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <div class="pulse"></div>
+      LIVE LEADERBOARD
+    </div>
+    <div class="last-update" id="last-update">Updating…</div>
+  </div>
+</header>
+
+<main>
+  <div id="podium" class="podium"></div>
+  <div id="lb-container">
+    <div class="empty-state">
+      <div class="icon">🎯</div>
+      <div>Waiting for answers…</div>
+    </div>
+  </div>
+</main>
+
+<footer>Momentum Trivia &bull; NeuraFlash &bull; Refreshes every 10 seconds</footer>
+
+<script>
+  let maxScore = 1;
+
+  async function loadLeaderboard() {
+    try {
+      const res = await fetch('/api/leaderboard');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      document.getElementById('last-update').textContent =
+        'Last updated: ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      const podiumEl = document.getElementById('podium');
+      const lbEl     = document.getElementById('lb-container');
+
+      if (data.length === 0) {
+        podiumEl.innerHTML = '';
+        lbEl.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🎯</div>
+            <div>Waiting for answers to be revealed…</div>
+          </div>`;
+        return;
+      }
+
+      maxScore = Math.max(...data.map(r => r.score), 1);
+
+      // ── Top 3 podium ──
+      const medals = ['🥇','🥈','🥉'];
+      const rankClass = ['rank-1','rank-2','rank-3'];
+      // Reorder for visual podium: 2nd, 1st, 3rd
+      const podiumOrder = [data[1], data[0], data[2]].filter(Boolean);
+      const podiumRanks = data.length >= 2
+        ? (data[2] ? [1,0,2] : [0])  // indices into data[] for each podium slot
+        : [0];
+
+      podiumEl.innerHTML = '';
+
+      // Build podium in visual order: 2nd, 1st, 3rd
+      const visualOrder = [];
+      if (data[1]) visualOrder.push({ row: data[1], rank: 1 });
+      if (data[0]) visualOrder.push({ row: data[0], rank: 0 });
+      if (data[2]) visualOrder.push({ row: data[2], rank: 2 });
+
+      // If only 1 entry
+      if (data.length === 1) visualOrder.splice(0, 0);
+
+      const allPodium = data.length === 1
+        ? [{ row: data[0], rank: 0 }]
+        : visualOrder;
+
+      allPodium.forEach(({ row, rank }) => {
+        const div = document.createElement('div');
+        div.className = 'podium-item';
+        div.innerHTML = `
+          <div class="podium-card ${rankClass[rank]}">
+            <div class="medal">${medals[rank]}</div>
+            <div class="podium-team">${esc(row.team_name || 'Table ' + row.table_number)}</div>
+            <div class="podium-table">Table ${row.table_number}</div>
+            <div class="podium-score">${row.score}</div>
+            <div class="podium-pts">points</div>
+          </div>`;
+        podiumEl.appendChild(div);
+      });
+
+      // ── Rest of table (rank 4+) ──
+      const rest = data.slice(3);
+      if (rest.length === 0) {
+        lbEl.innerHTML = '';
+        return;
+      }
+
+      let tbHtml = `
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Team</th>
+              <th>Table</th>
+              <th>Score</th>
+              <th>Answered</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      rest.forEach((row, i) => {
+        const rank = i + 4;
+        const pct  = Math.round((row.score / maxScore) * 100);
+        tbHtml += `
+          <tr>
+            <td class="rank-num">${rank}</td>
+            <td class="team-cell">
+              ${esc(row.team_name || '(no name)')}
+              <div class="score-bar-wrap">
+                <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div>
+              </div>
+            </td>
+            <td class="table-cell">Table ${row.table_number}</td>
+            <td class="score-cell">${row.score}</td>
+            <td class="ans-cell">${row.questions_answered} q</td>
+          </tr>`;
+      });
+
+      tbHtml += '</tbody></table>';
+      lbEl.innerHTML = tbHtml;
+
+    } catch (e) {
+      console.error('Leaderboard refresh error:', e);
+    }
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  loadLeaderboard();
+  setInterval(loadLeaderboard, 10000);
+</script>
+
+</body>
+</html>
