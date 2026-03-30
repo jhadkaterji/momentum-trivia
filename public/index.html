@@ -461,13 +461,28 @@
     selectedAnswer: null
   };
 
-  // Restore from localStorage
+  // Restore from localStorage — verify with server that table still exists
   const saved = JSON.parse(localStorage.getItem('nf-trivia') || '{}');
   if (saved.tableNumber) {
-    state.tableNumber = saved.tableNumber;
-    state.teamName    = saved.teamName || '';
-    showScreen('answer');
-    updateStatusBar();
+    fetch('/api/table/' + saved.tableNumber)
+      .then(r => r.json())
+      .then(data => {
+        if (data.registered) {
+          state.tableNumber = saved.tableNumber;
+          state.teamName    = data.team_name || '';
+          showScreen('answer');
+          updateStatusBar();
+        } else {
+          localStorage.removeItem('nf-trivia');
+        }
+      })
+      .catch(() => {
+        // Network error — restore optimistically so player isn't stuck
+        state.tableNumber = saved.tableNumber;
+        state.teamName    = saved.teamName || '';
+        showScreen('answer');
+        updateStatusBar();
+      });
   }
 
   // ── Screens ────────────────────────────────────────────────────────────────
