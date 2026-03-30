@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Leaderboard — Momentum Trivia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy:   #001F5B;
-      --orange: #FF6B00;
+      --navy:   #08032b;
+      --orange: #00949f;
       --gold:   #FFD700;
       --silver: #C0C0C0;
       --bronze: #CD7F32;
@@ -18,8 +20,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(160deg, #000C2A 0%, #001F5B 50%, #002880 100%);
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(160deg, #08032b 0%, #211f3d 50%, #393555 100%);
       min-height: 100vh;
       color: #fff;
       overflow-x: hidden;
@@ -54,8 +56,8 @@
 
     .live-badge {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,107,0,0.15);
-      border: 1px solid rgba(255,107,0,0.4);
+      background: rgba(0,148,159,0.15);
+      border: 1px solid rgba(0,148,159,0.4);
       border-radius: 20px;
       padding: 6px 16px;
       font-size: 13px; font-weight: 700;
@@ -200,7 +202,7 @@
     .score-bar-wrap { margin-top: 6px; }
     .score-bar {
       height: 4px; border-radius: 2px;
-      background: rgba(255,107,0,0.3);
+      background: rgba(0,148,159,0.3);
       overflow: hidden;
     }
     .score-bar-fill {

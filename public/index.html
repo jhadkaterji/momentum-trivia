@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Momentum Trivia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy:   #001F5B;
-      --blue:   #0047AB;
-      --orange: #FF6B00;
-      --orange-dark: #E05C00;
+      --navy:   #08032b;
+      --blue:   #393555;
+      --orange: #00949f;
+      --orange-dark: #007a84;
       --white:  #FFFFFF;
-      --light:  #F0F4FF;
+      --light:  #effeff;
       --gray:   #8899BB;
       --success:#22C55E;
       --danger: #EF4444;
@@ -21,8 +23,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(160deg, var(--navy) 0%, #002880 100%);
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(160deg, var(--navy) 0%, #393555 100%);
       min-height: 100vh;
       color: var(--white);
       display: flex;
@@ -160,6 +162,7 @@
 
     .btn-primary {
       background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      letter-spacing: 0.5px;
       color: #fff;
       margin-top: 8px;
     }
@@ -220,7 +223,7 @@
 
     .option-btn.selected {
       border-color: var(--orange);
-      background: #FFF3E8;
+      background: #e6fafb;
     }
 
     .option-btn.selected .option-letter {
@@ -379,10 +382,10 @@
 
       <!-- Shown for returning tables -->
       <div id="returning-team" style="display:none;margin-bottom:16px;padding:12px 14px;
-           background:#F0F4FF;border-radius:10px;border:2px solid #DDE2F0">
+           background:#effeff;border-radius:10px;border:2px solid #DDE2F0">
         <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
              color:#6B7A9E;margin-bottom:4px">Team</div>
-        <div id="returning-team-name" style="font-size:17px;font-weight:700;color:#001F5B"></div>
+        <div id="returning-team-name" style="font-size:17px;font-weight:700;color:#08032b"></div>
       </div>
 
       <div id="setup-error" class="error-msg" style="display:none"></div>

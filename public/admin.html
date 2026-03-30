@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Momentum Trivia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy:   #001F5B;
-      --blue:   #0047AB;
-      --orange: #FF6B00;
-      --orange-dk: #E05C00;
+      --navy:   #08032b;
+      --blue:   #393555;
+      --orange: #00949f;
+      --orange-dk: #007a84;
       --white:  #FFFFFF;
-      --light:  #F4F6FF;
+      --light:  #f2f2f2;
       --gray:   #6B7A9E;
       --border: #DDE2F0;
       --success:#16A34A;
@@ -22,15 +24,15 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Lexend', sans-serif;
       background: var(--light);
-      color: #1A1A2E;
+      color: #08032b;
     }
 
     /* ── Login overlay ────────────────────────────────────── */
     #login-overlay {
       position: fixed; inset: 0;
-      background: linear-gradient(160deg, var(--navy) 0%, #002880 100%);
+      background: linear-gradient(160deg, var(--navy) 0%, #393555 100%);
       display: flex; align-items: center; justify-content: center;
       z-index: 1000;
     }
@@ -87,7 +89,7 @@
     }
 
     nav button:hover  { background: rgba(255,255,255,0.08); color: #fff; }
-    nav button.active { background: rgba(255,107,0,0.2); color: var(--orange); }
+    nav button.active { background: rgba(0,148,159,0.2); color: var(--orange); }
 
     nav .icon { font-size: 18px; width: 22px; text-align: center; }
 
@@ -147,7 +149,7 @@
     input, textarea, select {
       width: 100%; padding: 10px 14px;
       border: 2px solid var(--border); border-radius: 8px;
-      font-size: 14px; color: #1A1A2E; background: var(--light);
+      font-size: 14px; color: #08032b; background: var(--light);
       outline: none; transition: border-color 0.2s;
       font-family: inherit;
     }
@@ -248,7 +250,7 @@
     /* ── Toast ────────────────────────────────────────────── */
     #toast {
       position: fixed; bottom: 24px; right: 24px;
-      background: #1A1A2E; color: #fff;
+      background: #08032b; color: #fff;
       padding: 12px 20px; border-radius: 10px;
       font-size: 14px; font-weight: 600;
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
@@ -513,10 +515,10 @@
     background:#fff; border-radius:20px; padding:36px 32px;
     width:380px; max-width:90vw; box-shadow:0 24px 60px rgba(0,0,0,0.4);">
     <div id="modal-icon" style="font-size:40px;text-align:center;margin-bottom:12px">⚠️</div>
-    <h2 id="modal-title" style="text-align:center;color:#1A1A2E;font-size:19px;margin-bottom:6px"></h2>
+    <h2 id="modal-title" style="text-align:center;color:#08032b;font-size:19px;margin-bottom:6px"></h2>
     <p  id="modal-desc"  style="text-align:center;color:#6B7A9E;font-size:14px;margin-bottom:22px;line-height:1.5"></p>
     <div style="margin-bottom:14px">
-      <label style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#001F5B;display:block;margin-bottom:6px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#08032b;display:block;margin-bottom:6px">
         Re-enter Admin Password to confirm
       </label>
       <input id="modal-pw" type="password" placeholder="Admin password"
@@ -527,8 +529,8 @@
     </div>
     <div style="display:flex;gap:10px">
       <button onclick="closeConfirmModal()"
-        style="flex:1;padding:12px;border:2px solid #DDE2F0;border-radius:8px;background:#F4F6FF;
-               font-size:14px;font-weight:700;cursor:pointer;color:#1A1A2E">
+        style="flex:1;padding:12px;border:2px solid #DDE2F0;border-radius:8px;background:#effeff;
+               font-size:14px;font-weight:700;cursor:pointer;color:#08032b">
         Cancel
       </button>
       <button id="modal-confirm-btn" onclick="confirmAction()"
