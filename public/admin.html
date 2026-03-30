@@ -1050,7 +1050,9 @@
       return;
     }
 
+    tablesMap = {};
     data.forEach(row => {
+      tablesMap[row.table_number] = row;
       const time = new Date(row.registered_at + 'Z').toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       const date = new Date(row.registered_at + 'Z').toLocaleDateString([], {month:'short', day:'numeric'});
       const bonusPts = row.bonus_points || 0;
@@ -1069,7 +1071,7 @@
         <td>
           <div style="display:flex;gap:6px">
             <button class="btn btn-primary btn-sm"
-              onclick="openPointsModal(${row.table_number}, ${JSON.stringify(esc(row.team_name || 'Table ' + row.table_number))})">
+              onclick="openPointsModal(${row.table_number})"
               + Pts
             </button>
             <button class="btn btn-danger btn-sm"
@@ -1092,8 +1094,11 @@
 
   // ── Points adjustments ────────────────────────────────────────────────────
   let pointsModalTable = null;
+  let tablesMap = {};
 
-  function openPointsModal(tableNum, teamName) {
+  function openPointsModal(tableNum) {
+    const row = tablesMap[tableNum] || {};
+    const teamName = row.team_name || ('Table ' + tableNum);
     pointsModalTable = tableNum;
     document.getElementById('points-modal-title').textContent = `Adjust Points — Table ${tableNum} (${teamName})`;
     document.getElementById('adj-points').value = '';
