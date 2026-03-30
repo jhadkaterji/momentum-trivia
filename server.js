@@ -45,6 +45,14 @@ db.exec(`
     team_name     TEXT,
     registered_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS point_adjustments (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    table_number INTEGER NOT NULL,
+    points       INTEGER NOT NULL,
+    reason       TEXT,
+    created_at   TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 app.use(express.json());
@@ -148,7 +156,8 @@ app.get('/api/leaderboard', (req, res) => {
     SELECT
       s.table_number,
       MAX(s.team_name) AS team_name,
-      COALESCE(SUM(CASE WHEN s.answer = q.correct_answer AND q.revealed = 1 THEN q.points ELSE 0 END), 0) AS score,
+      COALESCE(SUM(CASE WHEN s.answer = q.correct_answer AND q.revealed = 1 THEN q.points ELSE 0 END), 0)
+      + COALESCE((SELECT SUM(pa.points) FROM point_adjustments pa WHERE pa.table_number = s.table_number), 0) AS score,
       COUNT(DISTINCT s.question_number) AS questions_answered
     FROM submissions s
     JOIN questions q ON s.question_number = q.question_number
@@ -214,7 +223,8 @@ app.get('/api/admin/tables', adminAuth, (req, res) => {
       r.table_number,
       r.team_name,
       r.registered_at,
-      COUNT(s.id) AS answers_submitted
+      COUNT(s.id) AS answers_submitted,
+      COALESCE((SELECT SUM(pa.points) FROM point_adjustments pa WHERE pa.table_number = r.table_number), 0) AS bonus_points
     FROM table_registrations r
     LEFT JOIN submissions s ON r.table_number = s.table_number
     GROUP BY r.table_number
@@ -237,6 +247,7 @@ app.delete('/api/admin/clear-scores', adminAuth, (req, res) => {
   }
   db.exec('DELETE FROM submissions');
   db.exec('DELETE FROM table_registrations');
+  db.exec('DELETE FROM point_adjustments');
   res.json({ success: true });
 });
 
@@ -247,7 +258,37 @@ app.delete('/api/admin/reset', adminAuth, (req, res) => {
   }
   db.exec('DELETE FROM submissions');
   db.exec('DELETE FROM table_registrations');
+  db.exec('DELETE FROM point_adjustments');
   db.exec('DELETE FROM questions');
+  res.json({ success: true });
+});
+
+// ── Admin: list point adjustments for a table ─────────────────────────────
+app.get('/api/admin/points/:table_number', adminAuth, (req, res) => {
+  const rows = db.prepare(
+    'SELECT * FROM point_adjustments WHERE table_number = ? ORDER BY created_at DESC'
+  ).all(Number(req.params.table_number));
+  res.json(rows);
+});
+
+// ── Admin: add point adjustment ───────────────────────────────────────────
+app.post('/api/admin/points', adminAuth, (req, res) => {
+  const { table_number, points, reason } = req.body;
+  if (!table_number || points === undefined || points === null) {
+    return res.status(400).json({ error: 'table_number and points required' });
+  }
+  const pts = Number(points);
+  if (isNaN(pts) || pts === 0) {
+    return res.status(400).json({ error: 'Points must be a non-zero number' });
+  }
+  db.prepare('INSERT INTO point_adjustments (table_number, points, reason) VALUES (?, ?, ?)')
+    .run(Number(table_number), pts, reason || null);
+  res.json({ success: true });
+});
+
+// ── Admin: delete a point adjustment ─────────────────────────────────────
+app.delete('/api/admin/points/:id', adminAuth, (req, res) => {
+  db.prepare('DELETE FROM point_adjustments WHERE id = ?').run(Number(req.params.id));
   res.json({ success: true });
 });
 
@@ -302,7 +343,8 @@ app.get('/api/admin/leaderboard', adminAuth, (req, res) => {
     SELECT
       s.table_number,
       MAX(s.team_name) AS team_name,
-      COALESCE(SUM(CASE WHEN s.answer = q.correct_answer THEN q.points ELSE 0 END), 0) AS score,
+      COALESCE(SUM(CASE WHEN s.answer = q.correct_answer THEN q.points ELSE 0 END), 0)
+      + COALESCE((SELECT SUM(pa.points) FROM point_adjustments pa WHERE pa.table_number = s.table_number), 0) AS score,
       COUNT(DISTINCT s.question_number) AS questions_answered
     FROM submissions s
     JOIN questions q ON s.question_number = q.question_number

@@ -493,7 +493,7 @@
         <div class="tbl-wrap">
           <table>
             <thead>
-              <tr><th>#</th><th>Team Name</th><th>Registered</th><th>Answers</th><th>Action</th></tr>
+              <tr><th>#</th><th>Team Name</th><th>Registered</th><th>Answers</th><th>Bonus Pts</th><th>Action</th></tr>
             </thead>
             <tbody id="tables-tbody"></tbody>
           </table>
@@ -505,6 +505,52 @@
 </div>
 
 <div id="toast"></div>
+
+<!-- ── Points adjustment modal ──────────────────────────────── -->
+<div id="points-overlay" style="
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,20,0.65); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center;">
+  <div style="
+    background:#fff; border-radius:20px; padding:36px 32px;
+    width:420px; max-width:90vw; box-shadow:0 24px 60px rgba(0,0,0,0.4);">
+    <h2 id="points-modal-title" style="color:#08032b;font-size:19px;margin-bottom:4px"></h2>
+    <p style="color:var(--gray);font-size:13px;margin-bottom:20px">Points can be positive (bonus) or negative (penalty).</p>
+
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#08032b;display:block;margin-bottom:6px">Points</label>
+      <input id="adj-points" type="number" placeholder="e.g. 5 or -2"
+        style="width:100%;padding:11px 14px;border:2px solid #DDE2F0;border-radius:8px;font-size:15px;outline:none;font-family:inherit;"
+        onkeydown="if(event.key==='Enter') submitPointAdjustment()" />
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#08032b;display:block;margin-bottom:6px">Reason (optional)</label>
+      <input id="adj-reason" type="text" placeholder="e.g. Tiebreaker bonus"
+        style="width:100%;padding:11px 14px;border:2px solid #DDE2F0;border-radius:8px;font-size:15px;outline:none;font-family:inherit;"
+        onkeydown="if(event.key==='Enter') submitPointAdjustment()" />
+    </div>
+
+    <div id="adj-err" style="color:#DC2626;font-size:13px;font-weight:600;margin-bottom:12px;display:none"></div>
+
+    <div style="display:flex;gap:10px;margin-bottom:24px">
+      <button onclick="submitPointAdjustment()"
+        style="flex:1;padding:12px;border:none;border-radius:8px;background:var(--orange);
+               font-size:14px;font-weight:700;cursor:pointer;color:#fff;font-family:inherit">
+        Add Adjustment
+      </button>
+      <button onclick="closePointsModal()"
+        style="flex:1;padding:12px;border:2px solid #DDE2F0;border-radius:8px;background:#f2f2f2;
+               font-size:14px;font-weight:700;cursor:pointer;color:#08032b;font-family:inherit">
+        Close
+      </button>
+    </div>
+
+    <div id="adj-history-wrap" style="border-top:1px solid #DDE2F0;padding-top:16px">
+      <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:10px">Previous Adjustments</div>
+      <div id="adj-history"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ── Confirm / password modal ─────────────────────────────── -->
 <div id="confirm-overlay" style="
@@ -1007,17 +1053,30 @@
     data.forEach(row => {
       const time = new Date(row.registered_at + 'Z').toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       const date = new Date(row.registered_at + 'Z').toLocaleDateString([], {month:'short', day:'numeric'});
+      const bonusPts = row.bonus_points || 0;
+      const bonusBadge = bonusPts > 0
+        ? `<span class="badge badge-green">+${bonusPts}</span>`
+        : bonusPts < 0
+          ? `<span class="badge badge-red">${bonusPts}</span>`
+          : `<span style="color:var(--gray)">—</span>`;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>Table ${row.table_number}</strong></td>
         <td>${esc(row.team_name || '—')}</td>
         <td style="color:var(--gray);font-size:13px">${date} ${time}</td>
         <td><span class="badge badge-blue">${row.answers_submitted}</span></td>
+        <td>${bonusBadge}</td>
         <td>
-          <button class="btn btn-danger btn-sm"
-            onclick="deleteTable(${row.table_number})">
-            Delete
-          </button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary btn-sm"
+              onclick="openPointsModal(${row.table_number}, ${JSON.stringify(esc(row.team_name || 'Table ' + row.table_number))})">
+              + Pts
+            </button>
+            <button class="btn btn-danger btn-sm"
+              onclick="deleteTable(${row.table_number})">
+              Delete
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -1029,6 +1088,87 @@
     const { ok } = await api('DELETE', `/api/admin/tables/${num}`);
     if (ok) { toast(`Table ${num} deleted`, 'ok'); loadTables(); }
     else    { toast('Delete failed', 'err'); }
+  }
+
+  // ── Points adjustments ────────────────────────────────────────────────────
+  let pointsModalTable = null;
+
+  function openPointsModal(tableNum, teamName) {
+    pointsModalTable = tableNum;
+    document.getElementById('points-modal-title').textContent = `Adjust Points — Table ${tableNum} (${teamName})`;
+    document.getElementById('adj-points').value = '';
+    document.getElementById('adj-reason').value = '';
+    document.getElementById('adj-err').style.display = 'none';
+    document.getElementById('points-overlay').style.display = 'flex';
+    loadPointAdjustments(tableNum);
+    document.getElementById('adj-points').focus();
+  }
+
+  function closePointsModal() {
+    document.getElementById('points-overlay').style.display = 'none';
+    pointsModalTable = null;
+    loadTables();
+  }
+
+  async function loadPointAdjustments(tableNum) {
+    const histEl = document.getElementById('adj-history');
+    histEl.innerHTML = '<div style="color:var(--gray);font-size:13px">Loading…</div>';
+    const { ok, data } = await api('GET', `/api/admin/points/${tableNum}`);
+    if (!ok) { histEl.innerHTML = '<div style="color:var(--danger);font-size:13px">Failed to load.</div>'; return; }
+    if (data.length === 0) {
+      histEl.innerHTML = '<div style="color:var(--gray);font-size:13px">No adjustments yet.</div>';
+      return;
+    }
+    histEl.innerHTML = data.map(adj => {
+      const pts = adj.points > 0 ? `+${adj.points}` : String(adj.points);
+      const color = adj.points > 0 ? 'var(--success)' : 'var(--danger)';
+      const time = new Date(adj.created_at + 'Z').toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #DDE2F0">
+          <div>
+            <span style="font-size:16px;font-weight:800;color:${color};margin-right:10px">${pts} pts</span>
+            <span style="font-size:13px;color:#444">${esc(adj.reason || '—')}</span>
+            <div style="font-size:11px;color:var(--gray);margin-top:2px">${time}</div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteAdjustment(${adj.id})">✕</button>
+        </div>`;
+    }).join('');
+  }
+
+  async function submitPointAdjustment() {
+    const errEl = document.getElementById('adj-err');
+    const pts = Number(document.getElementById('adj-points').value);
+    const reason = document.getElementById('adj-reason').value.trim();
+    errEl.style.display = 'none';
+
+    if (!pts || isNaN(pts)) {
+      errEl.textContent = 'Enter a non-zero number of points.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const { ok, data } = await api('POST', '/api/admin/points', {
+      table_number: pointsModalTable, points: pts, reason
+    });
+    if (ok) {
+      document.getElementById('adj-points').value = '';
+      document.getElementById('adj-reason').value = '';
+      toast(`${pts > 0 ? '+' : ''}${pts} pts added to Table ${pointsModalTable}`, 'ok');
+      loadPointAdjustments(pointsModalTable);
+    } else {
+      errEl.textContent = data.error || 'Failed to add adjustment.';
+      errEl.style.display = 'block';
+    }
+  }
+
+  async function deleteAdjustment(id) {
+    const { ok } = await api('DELETE', `/api/admin/points/${id}`);
+    if (ok) {
+      toast('Adjustment removed', 'ok');
+      loadPointAdjustments(pointsModalTable);
+    } else {
+      toast('Failed to remove adjustment', 'err');
+    }
   }
 
   // ── Utils ─────────────────────────────────────────────────────────────────
